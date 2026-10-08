@@ -1,6 +1,6 @@
-# JGSUCO
+## Jogo da forca com suco
 
-JGSUCO é um jogo de forca desenvolvido em HTML, CSS e JavaScript puro, pensado para funcionar diretamente no navegador sem necessidade de instalação de dependências ou build tools.
+Jogo da forca com suco é um jogo de forca desenvolvido em HTML, CSS e JavaScript puro, pensado para funcionar diretamente no navegador sem necessidade de instalação de dependências ou build tools.
 
 O projeto tem foco em experiência divertida, interface visual marcante e mecânica simples de jogo: o jogador deve descobrir a palavra secreta antes de completar o boneco da forca.
 
