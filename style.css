@@ -2,428 +2,462 @@
    1. VARIÁVEIS (design tokens)
    Cores, fonte e sombras definidas uma única vez.
    ========================================================== */
-:root{
-  --bg:#f4f2ff;        /* fundo lavanda bem claro */
-  --card:#ffffff;      /* superfície dos cartões */
-  --ink:#1d1a3b;       /* texto e contornos: índigo quase preto */
-  --muted:#5f5b85;     /* texto secundário (contraste bom sobre o fundo) */
-  --line:#d6d1f0;      /* linhas e bordas suaves */
-  --brand:#5b3df5;     /* roxo: seleção e destaque */
-  --good:#12a56b;      /* acerto */
-  --bad:#e5384f;       /* erro */
-  --gold:#ffb703;      /* estrelas e sequência alta */
-  --font:"Lexend","Atkinson Hyperlegible","Segoe UI",Verdana,system-ui,sans-serif; /* Lexend foi desenhada para leitura fácil; o resto é reserva */
-  --pop:cubic-bezier(.2,1.7,.4,1);   /* curva "elástica": passa do ponto e volta, dá o efeito de pulo */
-  --solid:0 4px 0 var(--ink);        /* sombra sólida que faz as peças parecerem físicas */
-}
-
-*{box-sizing:border-box}
-
-body{
-  margin:0;min-height:100vh;
-  background:var(--bg);
-  background-image:radial-gradient(#dcd7f5 1.4px,transparent 1.4px); /* pontinhos discretos, como papel de jogo */
-  background-size:24px 24px;
-  color:var(--ink);
-  font-family:var(--font);
-  font-size:18px;line-height:1.55;     /* texto maior e com entrelinha confortável */
-  -webkit-font-smoothing:antialiased;
-}
-
-main{max-width:800px;margin:0 auto;padding:32px 20px 56px}
-
-/* ==========================================================
-   2. CABEÇALHO E RÓTULOS
-   ========================================================== */
-header{text-align:center;margin-bottom:26px}
-h1{
-  font-weight:800;font-size:clamp(40px,8vw,56px);line-height:1;
-  letter-spacing:.04em;margin:0 0 10px;text-transform:uppercase;
-  text-shadow:0 4px 0 #fff,0 7px 0 var(--line);   /* leve relevo: título "estampado" */
-}
-.sub{margin:0;color:var(--muted);font-size:18px}
-.player{margin:12px 0 0;font-size:16px;font-weight:600}
-
-/* Rótulos agora em minúsculas e com peso: muito mais fáceis de ler que CAIXA ALTA espaçada */
-.label{font:600 14px/1.2 var(--font);color:var(--muted);margin-bottom:10px;letter-spacing:.01em}
-
-/* ==========================================================
-   3. TABULEIRO
-   ========================================================== */
-.board{
-  display:grid;grid-template-columns:240px 1fr;gap:36px;
-  padding:30px;background:var(--card);
-  border:2.5px solid var(--ink);border-radius:24px;box-shadow:0 7px 0 var(--ink);
-}
-@media(max-width:640px){
-  .board{grid-template-columns:1fr;gap:24px;padding:22px 18px}
-  .stage{margin:0 auto}
-}
-
-/* ==========================================================
-   4. DESENHO DA FORCA (linhas mais grossas e arredondadas)
-   ========================================================== */
-.stage{position:relative;width:220px;height:260px}
-.stage div{position:absolute;background:var(--ink);border-radius:4px;transition:background .4s}
-.base{left:20px;bottom:0;width:160px;height:5px}
-.pole{left:60px;bottom:0;width:5px;height:250px}
-.beam{left:60px;top:10px;width:112px;height:5px}
-.rope{left:168px;top:10px;width:3px;height:28px}
-
-/* Perto do fim (1 vida), a estrutura fica vermelha */
-.stage.danger .frame{background:var(--bad)}
-
-.part{opacity:0}
-.part.show{opacity:1;animation:partIn .5s var(--pop)}   /* cada parte do boneco "pula" para dentro */
-@keyframes partIn{from{opacity:0;scale:.2}to{opacity:1;scale:1}}
-
-.head{
-  left:150px;top:38px;width:40px;height:40px;
-  border:4px solid var(--bad);border-radius:50%;
-  background:transparent!important;
-}
-.body,.arm,.leg{background:var(--bad)!important;width:4px;transform-origin:top center}
-.body{left:168px;top:78px;height:70px}
-.arm{top:92px;height:44px}
-.arm.l{left:168px;transform:rotate(50deg)}
-.arm.r{left:168px;transform:rotate(-50deg)}
-.leg{top:148px;height:52px}
-.leg.l{left:168px;transform:rotate(28deg)}
-.leg.r{left:168px;transform:rotate(-28deg)}
-
-/* ==========================================================
-   5. COLUNA DE INFORMAÇÕES
-   ========================================================== */
-.info{display:flex;flex-direction:column;gap:26px;min-width:0}
-
-/* Palavra: cada letra é uma peça de tabuleiro */
-#word{display:flex;flex-wrap:wrap;gap:10px 7px;min-height:58px}
-.cell{
-  display:inline-grid;place-items:center;
-  min-width:40px;height:56px;padding:0 4px;
-  background:var(--card);
-  border:2.5px solid var(--ink);border-radius:12px;box-shadow:0 4px 0 var(--ink);
-  font:700 30px/1 var(--font);text-transform:uppercase;
-}
-.cell:empty{background:#e9e6fb;border-color:#b9b2e6;box-shadow:inset 0 4px 0 #d3cdf3}  /* casa vazia parece "afundada" */
-.cell.gap{border:0;background:none;box-shadow:none;min-width:18px}                      /* hífen: sem peça */
-.cell.reveal{color:var(--bad);background:#ffecef}                                        /* letras reveladas na derrota */
-
-/* Letra recém-acertada: cai do alto e quica no lugar, uma depois da outra */
-.cell.fresh{animation:drop .6s var(--pop) both;animation-delay:calc(var(--j) * 110ms)}
-@keyframes drop{
-  0%{transform:translateY(-34px) scale(.5) rotate(-10deg);opacity:0;background:#bff0d8}
-  60%{opacity:1}
-  100%{transform:none;opacity:1}
-}
-
-/* Vitória: ola de letras */
-.cell.win{color:var(--good);background:#dcf7ea;animation:pop .7s ease both;animation-delay:calc(var(--i) * 80ms)}
-@keyframes pop{0%,100%{transform:translateY(0)}40%{transform:translateY(-16px) scale(1.08)}}
-
-.meta{display:flex;justify-content:space-between;gap:24px}
-.right{text-align:right}
-#used{font:600 20px/1.6 var(--font);letter-spacing:.14em;min-height:32px;text-transform:uppercase}
-#used .hit{color:var(--good)}
-#used .miss{color:var(--bad);text-decoration:line-through;text-decoration-thickness:2px}
-#counter{font:700 24px/1.4 var(--font)}
-
-.hints ol{margin:0 0 12px;padding-left:22px;font-size:17px;line-height:1.6;color:#33305a}
-.hints li{margin-bottom:6px}
-.hints li::marker{font-weight:700;color:var(--brand)}
-
-.link{
-  background:none;border:0;padding:0 0 3px;cursor:pointer;
-  font:600 15px/1.2 var(--font);color:var(--brand);
-  border-bottom:2px solid currentColor;transition:color .15s,transform .15s;
-}
-.link:hover{color:var(--ink)}
-.link:active{transform:scale(.96)}
-.link:disabled{color:var(--muted);border-color:var(--line);cursor:default;transform:none}
-
-/* ==========================================================
-   6. MENSAGENS
-   ========================================================== */
-#msg{text-align:center;font-weight:500;font-size:18px;min-height:30px;margin:24px 0 16px}
-#msg.warn{color:var(--muted)}
-#msg.lose{color:var(--bad);font-weight:600;animation:msgIn .4s var(--pop)}
-#msg.win{color:var(--good);font-size:24px;font-weight:700;animation:msgIn .6s var(--pop)}
-@keyframes msgIn{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
-
-/* incentivo para jogar de novo */
-#hook{text-align:center;font-weight:600;font-size:18px;color:var(--brand);margin:-6px 0 18px}
-#hook:empty{display:none}
-#hook small{display:block;margin-top:4px;font-weight:500;font-size:14px;color:var(--muted)}
-#hook.in{animation:msgIn .5s .25s var(--pop) both}
-/* botão chama a atenção: respira e balança de leve de tempos em tempos */
-#new.urge{animation:urge 1.8s ease-in-out infinite}
-@keyframes urge{
-  0%,100%{transform:scale(1);box-shadow:0 4px 0 var(--ink),0 0 0 0 rgba(91,61,245,.45)}
-  50%{transform:scale(1.07);box-shadow:0 4px 0 var(--ink),0 0 0 12px rgba(91,61,245,0)}
-  62%{transform:scale(1.07) rotate(-2deg)}
-  74%{transform:scale(1.07) rotate(2deg)}
-  86%{transform:scale(1.07) rotate(0)}
-}
-
-/* ==========================================================
-   7. SEQUÊNCIAS: corrente de letras e estrelas de vitórias
-   ========================================================== */
-.streaks{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:800px;margin:0 auto 22px}
-@media(max-width:640px){.streaks{grid-template-columns:1fr}}
-.streak-card{
-  background:var(--card);border:2.5px solid var(--ink);border-radius:16px;box-shadow:var(--solid);
-  padding:12px 14px 14px;transition:background .3s,border-color .3s,box-shadow .3s;
-}
-.streak-card.bump{animation:bump .45s var(--pop)}
-@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.04)}100%{transform:scale(1)}}
-.streak-label{font:600 15px/1.3 var(--font);margin-bottom:10px;transition:color .3s}
-
-/* --- corrente de letras certas --- */
-.chain{display:flex;flex-wrap:wrap;gap:6px;min-height:42px;align-items:center}
-.chain:empty::before{content:"As letras certas aparecem aqui";color:var(--muted);font-size:14px}
-.bub{
-  position:relative;width:38px;height:38px;display:grid;place-items:center;border-radius:50%;
-  background:var(--good);color:#fff;border:2.5px solid var(--ink);box-shadow:0 3px 0 var(--ink);
-  font:700 17px/1 var(--font);
-  transition:background .35s,color .35s;
-  animation:bubIn .55s var(--pop) both;
-}
-@keyframes bubIn{from{transform:translateY(14px) scale(0) rotate(-35deg)}to{transform:none}}
-/* anel que se expande ao redor da letra mais nova */
-.bub.last::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:3px solid var(--good);animation:ring .8s ease-out both}
-@keyframes ring{from{transform:scale(1);opacity:1}to{transform:scale(1.9);opacity:0}}
-
-/* a corrente "esquenta" conforme cresce */
-#chainBox[data-tier="2"]{border-color:var(--brand);box-shadow:0 4px 0 var(--brand)}
-#chainBox[data-tier="2"] .bub{background:var(--brand)}
-#chainBox[data-tier="2"] .bub.last::after{border-color:var(--brand)}
-#chainBox[data-tier="2"] .streak-label{color:var(--brand)}
-#chainBox[data-tier="3"]{background:#fff8e1;box-shadow:0 4px 0 var(--ink),0 0 0 5px #ffb70359}
-#chainBox[data-tier="3"] .bub{background:var(--gold);color:var(--ink)}
-#chainBox[data-tier="3"] .bub.last::after{border-color:var(--gold)}
-#chainBox[data-tier="3"] .streak-label{color:#9a6400}
-
-/* errou: o cartão fica vermelho e as bolhas se espalham */
-#chainBox[data-tier="broken"]{border-color:var(--bad);box-shadow:0 4px 0 var(--bad)}
-#chainBox[data-tier="broken"] .streak-label{color:var(--bad)}
-.bub.break{background:var(--bad)!important;color:#fff!important;animation:shatter .8s ease-in forwards}
-@keyframes shatter{
-  0%{transform:none;opacity:1}
-  25%{transform:scale(1.15) rotate(var(--fr))}
-  100%{transform:translate(var(--fx),90px) rotate(var(--fr)) scale(.6);opacity:0}
-}
-
-/* vitória: ola das bolhas */
-.bub.wave{animation:wave .7s ease both;animation-delay:calc(var(--i) * 70ms)}
-.bub.wave::after{display:none}
-@keyframes wave{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px) scale(1.2)}}
-
-/* --- estrelas de rodadas ganhas --- */
-.trophies{display:flex;flex-wrap:wrap;gap:4px;min-height:42px;align-items:center}
-.star{
-  position:relative;font-size:32px;line-height:1;color:#e3dffa;   /* casa vazia */
-  -webkit-text-stroke:2px var(--line);
-}
-.star.on{color:var(--gold);-webkit-text-stroke:2px var(--ink);filter:drop-shadow(0 3px 0 var(--ink))}
-/* a estrela nova é "carimbada" com um anel de impacto */
-.star.stamp{animation:stamp .8s var(--pop) both}
-@keyframes stamp{0%{transform:scale(3.2) rotate(-50deg);opacity:0}55%{opacity:1}100%{transform:none}}
-.star.stamp::after{
-  content:"";position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;
-  border-radius:50%;border:3px solid var(--gold);animation:burst .8s .25s ease-out both;
-}
-@keyframes burst{from{transform:scale(1);opacity:1}to{transform:scale(5);opacity:0}}
-/* derrota: as estrelas caem, uma depois da outra */
-.star.crumble{animation:crumble .8s ease-in forwards;animation-delay:calc(var(--i) * 70ms)}
-@keyframes crumble{to{transform:translateY(70px) rotate(70deg);opacity:0;filter:grayscale(1)}}
-
-/* ==========================================================
-   8. TECLADO VIRTUAL (teclas que afundam ao clicar)
-   ========================================================== */
-#kb{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 6px;max-width:600px;margin:0 auto}
-#kb button{
-  width:46px;height:52px;border-radius:10px;
-  background:var(--card);color:var(--ink);
-  border:2.5px solid var(--ink);box-shadow:var(--solid);
-  font:700 18px var(--font);cursor:pointer;
-  transition:transform .08s,box-shadow .08s,background .15s,color .15s;
-}
-#kb button:not(.hit):not(.miss):hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--ink);background:#efecff}
-#kb button:not(.hit):not(.miss):active{transform:translateY(4px);box-shadow:0 0 0 var(--ink)}   /* afunda até o "chão" */
-#kb button.hit{background:var(--good);color:#fff;cursor:default;animation:keyHit .5s var(--pop)}
-#kb button.miss{background:#eceaf6;color:#9a96b8;border-color:#b9b5d3;box-shadow:0 4px 0 #b9b5d3;text-decoration:line-through;cursor:default;animation:keyMiss .4s}
-@keyframes keyHit{0%{transform:translateY(4px) scale(.9)}60%{transform:translateY(-6px) scale(1.12)}100%{transform:none}}
-@keyframes keyMiss{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
-#kb.locked button{opacity:.4;cursor:default;pointer-events:none}
-
-/* ==========================================================
-   9. RODAPÉ E ACESSIBILIDADE
-   ========================================================== */
-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px 24px;text-align:center;margin-top:40px}
-#new{
-  background:var(--brand);color:#fff;border:2.5px solid var(--ink);border-radius:12px;
-  padding:14px 30px;font:700 17px/1 var(--font);cursor:pointer;box-shadow:var(--solid);
-  transition:transform .08s,box-shadow .08s,background .15s;
-}
-#new:hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--ink)}
-#new:active{transform:translateY(4px);box-shadow:0 0 0 var(--ink)}
-#stats{flex-basis:100%;margin:6px 0 0;font:500 15px var(--font);color:var(--muted)}
-button:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
-
-/* ==========================================================
-   10. COMEMORAÇÃO: confete, vinheta de erro e aviso de marco
-   ========================================================== */
-#confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:30}
-.confetto{position:absolute;top:-20px;width:9px;height:16px;border-radius:2px;animation:fall linear forwards}
-.confetto.round{width:11px;height:11px;border-radius:50%}
-@keyframes fall{
-  0%{transform:translate3d(0,0,0) rotate(0);opacity:1}
-  85%{opacity:1}
-  100%{transform:translate3d(var(--dx),105vh,0) rotate(var(--rot));opacity:0}
-}
-
-/* brilho vermelho nas bordas a cada erro */
-#vignette{position:fixed;inset:0;pointer-events:none;z-index:25;box-shadow:inset 0 0 140px 30px rgba(229,56,79,0);}
-#vignette.hurt{animation:hurt .6s ease-out}
-@keyframes hurt{0%{box-shadow:inset 0 0 140px 30px rgba(229,56,79,.55)}100%{box-shadow:inset 0 0 140px 30px rgba(229,56,79,0)}}
-
-/* aviso grande de marco (3, 5, 10 vitórias seguidas) */
-#toast{
-  position:fixed;left:50%;top:96px;z-index:40;pointer-events:none;
-  transform:translateX(-50%) scale(.6);opacity:0;white-space:nowrap;
-  background:var(--ink);color:#fff;border:3px solid var(--gold);border-radius:999px;
-  padding:14px 28px;font:800 clamp(18px,4.5vw,26px)/1 var(--font);box-shadow:0 8px 0 rgba(29,26,59,.25);
-}
-#toast.show{animation:toast 2.6s var(--pop) both}
-@keyframes toast{
-  0%{opacity:0;transform:translateX(-50%) scale(.5) rotate(-6deg)}
-  12%{opacity:1;transform:translateX(-50%) scale(1.12) rotate(2deg)}
-  20%{transform:translateX(-50%) scale(1) rotate(0)}
-  85%{opacity:1;transform:translateX(-50%) scale(1)}
-  100%{opacity:0;transform:translateX(-50%) translateY(-24px) scale(.9)}
-}
-
-/* ==========================================================
-   11. TELA DE CONFIGURAÇÃO
-   ========================================================== */
-.setup{
-  position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto;
-  background:radial-gradient(circle at 12% 8%,#ffe7a3 0,transparent 34%),radial-gradient(circle at 92% 92%,#cbc0ff 0,transparent 42%),var(--bg);
-}
-.setup[hidden]{display:none}
-.setup-box{
-  width:100%;max-width:540px;background:var(--card);padding:30px 28px 28px;
-  border:2.5px solid var(--ink);border-radius:24px;box-shadow:0 8px 0 var(--ink);
-  animation:boxIn .6s var(--pop) both;
-}
-@keyframes boxIn{from{transform:translateY(30px) scale(.94);opacity:0}to{transform:none;opacity:1}}
-.setup-box h2{font-weight:800;font-size:30px;line-height:1.2;margin:0 0 20px;text-align:center}
-.setup-box .label{margin:22px 0 10px}
-#name{
-  width:100%;padding:12px 14px;font:500 20px var(--font);color:var(--ink);
-  background:#faf9ff;border:2.5px solid var(--ink);border-radius:12px;
-  transition:box-shadow .15s,border-color .15s;
-}
-#name:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px #5b3df533}
-#name::placeholder{color:var(--muted)}
-
-.choices{display:flex;gap:10px}
-.choices button{
-  flex:1;padding:12px 8px;background:var(--card);color:var(--ink);
-  border:2.5px solid var(--ink);border-radius:12px;box-shadow:0 3px 0 var(--ink);
-  font:700 17px var(--font);cursor:pointer;
-  display:flex;flex-direction:column;gap:3px;align-items:center;
-  transition:transform .08s,box-shadow .08s,background .15s,color .15s;
-}
-.choices button small{font:500 13px var(--font);color:var(--muted)}
-.choices button:hover{transform:translateY(-2px);box-shadow:0 5px 0 var(--ink)}
-.choices button:active{transform:translateY(3px);box-shadow:0 0 0 var(--ink)}
-.choices button[aria-checked="true"]{background:var(--brand);color:#fff}
-.choices button[aria-checked="true"] small{color:#e3ddff}
-.note{margin:12px 0 0;color:var(--muted);font-size:15px;min-height:24px}
-
-.start{
-  display:block;width:100%;margin-top:26px;padding:16px;
-  background:var(--good);color:#fff;border:2.5px solid var(--ink);border-radius:14px;box-shadow:var(--solid);
-  font:800 19px/1 var(--font);cursor:pointer;
-  transition:transform .08s,box-shadow .08s,opacity .15s;
-}
-.start:hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--ink)}
-.start:active{transform:translateY(4px);box-shadow:0 0 0 var(--ink)}
-.start:disabled{opacity:.4;cursor:default;transform:none;box-shadow:var(--solid)}
-input:focus-visible{outline:none}
-
-/* ==========================================================
-   12. BARRA DA CATEGORIA, VIDAS E CARROSSEL
-   ========================================================== */
-.topic{
-  position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;
-  padding:12px 20px;background:var(--ink);color:#fff;
-  border-bottom:3px solid var(--brand);box-shadow:0 4px 18px #1d1a3b40;
-}
-.topic .label{color:#c9c4ee;margin:0 0 3px;font-size:13px}
-.topic strong{font:700 22px/1.1 var(--font)}
-.t-ico{font-size:34px;line-height:1;display:inline-block}
-.topic.flash .t-ico{animation:icoBounce .7s var(--pop)}
-@keyframes icoBounce{0%{transform:scale(.3) rotate(-30deg)}100%{transform:none}}
-.t-side{margin-left:auto;white-space:nowrap}
-.topic.flash{animation:flash .7s}
-@keyframes flash{0%{background:var(--brand)}100%{background:var(--ink)}}
-
-#lives i{font-style:normal;font-size:24px;margin-left:3px;display:inline-block;color:#ff6b81;transition:color .3s,transform .3s}
-#lives i.off{color:#4a466f;transform:scale(.75)}
-#lives i.break{animation:heartBreak .7s ease-out}
-@keyframes heartBreak{
-  0%{transform:scale(1.5);color:#ff6b81}
-  30%{transform:scale(1.7) rotate(-18deg)}
-  60%{transform:scale(1.2) rotate(14deg)}
-  100%{transform:scale(.75) rotate(0)}
-}
-/* última vida: o coração restante bate */
-#lives.low i:not(.off){animation:heartbeat .8s ease-in-out infinite}
-@keyframes heartbeat{0%,100%{transform:scale(1)}30%{transform:scale(1.35)}60%{transform:scale(1.1)}}
-
-.scroll-hint{float:right;font-weight:500;font-size:13px;color:var(--muted)}
-.rail{
-  display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;
-  padding:8px 4px 16px;scrollbar-width:thin;
-  -webkit-mask-image:linear-gradient(90deg,#000 90%,transparent);mask-image:linear-gradient(90deg,#000 90%,transparent);
-}
-.rail button{
-  flex:0 0 116px;scroll-snap-align:start;padding:14px 8px;
-  background:var(--card);color:var(--ink);
-  border:2.5px solid var(--ink);border-radius:16px;box-shadow:0 4px 0 var(--ink);
-  font:700 16px var(--font);
-  display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;
-  transition:transform .15s var(--pop),background .15s,box-shadow .15s;
-}
-.rail .ci{font-size:36px;line-height:1.1;transition:transform .25s var(--pop)}
-.rail small{font:500 12px var(--font);color:var(--muted)}
-.rail button:hover{transform:translateY(-4px);box-shadow:0 8px 0 var(--ink)}
-.rail button:hover .ci{transform:scale(1.2) rotate(-6deg)}
-.rail button:active{transform:translateY(3px);box-shadow:0 0 0 var(--ink)}
-.rail button[aria-checked="true"]{background:var(--brand);color:#fff;transform:translateY(-4px) scale(1.04);box-shadow:0 8px 0 var(--ink)}
-.rail button[aria-checked="true"] small{color:#e3ddff}
-
-/* ==========================================================
-   13. FEEDBACK DE JOGADA E RESPONSIVO
-   ========================================================== */
-.stage.shake{animation:shake .45s}
-@keyframes shake{20%,60%{transform:translateX(-9px) rotate(-2deg)}40%,80%{transform:translateX(9px) rotate(2deg)}}
-
-@media(max-width:640px){
-  body{font-size:17px}
-  #kb{gap:7px 5px}
-  #kb button{width:38px;height:48px;font-size:16px}
-  .cell{min-width:36px;height:52px;font-size:27px}
-  .topic strong{font-size:18px}
-  .topic{padding:10px 14px}
-}
-
-/* ==========================================================
-   14. QUEM PEDIU MENOS MOVIMENTO NO SISTEMA
-   ========================================================== */
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
-  #confetti,#vignette{display:none}
-}
+   :root{
+    --bg:#f4f2ff;        /* fundo lavanda bem claro */
+    --card:#ffffff;      /* superfície dos cartões */
+    --ink:#1d1a3b;       /* texto e contornos: índigo quase preto */
+    --muted:#5f5b85;     /* texto secundário (contraste bom sobre o fundo) */
+    --line:#d6d1f0;      /* linhas e bordas suaves */
+    --brand:#5b3df5;     /* roxo: seleção e destaque */
+    --good:#12a56b;      /* acerto */
+    --bad:#e5384f;       /* erro */
+    --gold:#ffb703;      /* estrelas e sequência alta */
+    --font:"Lexend","Atkinson Hyperlegible","Segoe UI",Verdana,system-ui,sans-serif; /* Lexend foi desenhada para leitura fácil; o resto é reserva */
+    --pop:cubic-bezier(.2,1.7,.4,1);   /* curva "elástica": passa do ponto e volta, dá o efeito de pulo */
+    --solid:0 4px 0 var(--ink);        /* sombra sólida que faz as peças parecerem físicas */
+  }
+  
+  *{box-sizing:border-box}
+  
+  html{overflow:hidden}                                   /* sem barra de rolagem: a partida se ajusta à janela (veja fit() no JS) */
+  html.scrolls{overflow-y:auto;scrollbar-width:none}      /* último recurso em telas minúsculas: rola, mas sem mostrar a barra */
+  html.scrolls::-webkit-scrollbar{display:none}
+  body{
+    margin:0;
+    background:var(--bg);
+    background-image:radial-gradient(#dcd7f5 1.4px,transparent 1.4px); /* pontinhos discretos, como papel de jogo */
+    background-size:24px 24px;
+    color:var(--ink);
+    font-family:var(--font);
+    font-size:18px;line-height:1.55;     /* texto maior e com entrelinha confortável */
+    -webkit-font-smoothing:antialiased;
+  }
+  
+  main{max-width:800px;margin:0 auto;padding:14px 20px 16px}
+  
+  /* ==========================================================
+     2. CABEÇALHO E RÓTULOS
+     ========================================================== */
+  header{text-align:center;margin-bottom:14px}
+  h1{
+    font-weight:800;font-size:clamp(32px,7vw,44px);line-height:1;
+    letter-spacing:.04em;margin:0 0 6px;text-transform:uppercase;
+    text-shadow:0 3px 0 #fff,0 5px 0 var(--line);   /* leve relevo: título "estampado" */
+  }
+  .sub{margin:0;color:var(--muted);font-size:15px}
+  .player{margin:6px 0 0;font-size:15px;font-weight:600}
+  
+  /* Rótulos agora em minúsculas e com peso: muito mais fáceis de ler que CAIXA ALTA espaçada */
+  .label{font:600 14px/1.2 var(--font);color:var(--muted);margin-bottom:10px;letter-spacing:.01em}
+  
+  /* ==========================================================
+     3. TABULEIRO
+     ========================================================== */
+  .board{
+    display:grid;grid-template-columns:240px 1fr;gap:30px;
+    padding:22px 26px;background:var(--card);
+    border:2.5px solid var(--ink);border-radius:24px;box-shadow:0 7px 0 var(--ink);
+  }
+  @media(max-width:640px){
+    .board{grid-template-columns:1fr;gap:24px;padding:22px 18px}
+    .stage{margin:0 auto}
+  }
+  
+  /* ==========================================================
+     4. DESENHO DA FORCA (linhas mais grossas e arredondadas)
+     ========================================================== */
+  .stage{position:relative;width:220px;height:260px}
+  .stage div{position:absolute;background:var(--ink);border-radius:4px;transition:background .4s}
+  .base{left:20px;bottom:0;width:160px;height:5px}
+  .pole{left:60px;bottom:0;width:5px;height:250px}
+  .beam{left:60px;top:10px;width:112px;height:5px}
+  .rope{left:168px;top:10px;width:3px;height:28px}
+  
+  /* Perto do fim (1 vida), a estrutura fica vermelha */
+  .stage.danger .frame{background:var(--bad)}
+  
+  .part{opacity:0}
+  .part.show{opacity:1;animation:partIn .5s var(--pop)}   /* cada parte do boneco "pula" para dentro */
+  @keyframes partIn{from{opacity:0;scale:.2}to{opacity:1;scale:1}}
+  
+  .head{
+    left:150px;top:38px;width:40px;height:40px;
+    border:4px solid var(--bad);border-radius:50%;
+    background:transparent!important;
+  }
+  .body,.arm,.leg{background:var(--bad)!important;width:4px;transform-origin:top center}
+  .body{left:168px;top:78px;height:70px}
+  .arm{top:92px;height:44px}
+  .arm.l{left:168px;transform:rotate(50deg)}
+  .arm.r{left:168px;transform:rotate(-50deg)}
+  .leg{top:148px;height:52px}
+  .leg.l{left:168px;transform:rotate(28deg)}
+  .leg.r{left:168px;transform:rotate(-28deg)}
+  
+  /* ==========================================================
+     5. COLUNA DE INFORMAÇÕES
+     ========================================================== */
+  .info{display:flex;flex-direction:column;gap:18px;min-width:0}
+  
+  /* Palavra: cada letra é uma peça de tabuleiro */
+  #word{display:flex;flex-wrap:wrap;gap:10px 7px;min-height:58px}
+  .cell{
+    display:inline-grid;place-items:center;
+    min-width:40px;height:56px;padding:0 4px;
+    background:var(--card);
+    border:2.5px solid var(--ink);border-radius:12px;box-shadow:0 4px 0 var(--ink);
+    font:700 30px/1 var(--font);text-transform:uppercase;
+  }
+  .cell:empty{background:#e9e6fb;border-color:#b9b2e6;box-shadow:inset 0 4px 0 #d3cdf3}  /* casa vazia parece "afundada" */
+  .cell.gap{border:0;background:none;box-shadow:none;min-width:18px}                      /* hífen: sem peça */
+  .cell.reveal{color:var(--bad);background:#ffecef}                                        /* letras reveladas na derrota */
+  
+  /* Letra recém-acertada: cai do alto e quica no lugar, uma depois da outra */
+  .cell.fresh{animation:drop .6s var(--pop) both;animation-delay:calc(var(--j) * 110ms)}
+  @keyframes drop{
+    0%{transform:translateY(-34px) scale(.5) rotate(-10deg);opacity:0;background:#bff0d8}
+    60%{opacity:1}
+    100%{transform:none;opacity:1}
+  }
+  
+  /* Vitória: ola de letras */
+  .cell.win{color:var(--good);background:#dcf7ea;animation:pop .7s ease both;animation-delay:calc(var(--i) * 80ms)}
+  @keyframes pop{0%,100%{transform:translateY(0)}40%{transform:translateY(-16px) scale(1.08)}}
+  
+  .meta{display:flex;justify-content:space-between;gap:24px}
+  .right{text-align:right}
+  #used{font:600 20px/1.6 var(--font);letter-spacing:.14em;min-height:32px;text-transform:uppercase}
+  #used .hit{color:var(--good)}
+  #used .miss{color:var(--bad);text-decoration:line-through;text-decoration-thickness:2px}
+  #counter{font:700 24px/1.4 var(--font)}
+  
+  .hints ol{margin:0 0 8px;padding-left:22px;font-size:16px;line-height:1.45;color:#33305a}
+  .hints li{margin-bottom:4px}
+  .hints li::marker{font-weight:700;color:var(--brand)}
+  
+  .link{
+    background:none;border:0;padding:0 0 3px;cursor:pointer;
+    font:600 15px/1.2 var(--font);color:var(--brand);
+    border-bottom:2px solid currentColor;transition:color .15s,transform .15s;
+  }
+  .link:hover{color:var(--ink)}
+  .link:active{transform:scale(.96)}
+  .link:disabled{color:var(--muted);border-color:var(--line);cursor:default;transform:none}
+  
+  /* ==========================================================
+     6. MENSAGENS
+     ========================================================== */
+  #msg{text-align:center;font-weight:500;font-size:18px;min-height:30px;margin:14px 0 4px}
+  #msg.warn{color:var(--muted)}
+  #msg.lose{color:var(--bad);font-weight:600;animation:msgIn .4s var(--pop)}
+  #msg.win{color:var(--good);font-size:24px;font-weight:700;animation:msgIn .6s var(--pop)}
+  @keyframes msgIn{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
+  
+  /* incentivo para jogar de novo */
+  #hook{text-align:center;font-weight:600;font-size:17px;line-height:1.3;color:var(--brand);margin:0 0 10px;min-height:48px}  /* espaço reservado: o layout não pula ao aparecer o incentivo */
+  #hook small{display:block;margin-top:4px;font-weight:500;font-size:14px;color:var(--muted)}
+  #hook.in{animation:msgIn .5s .25s var(--pop) both}
+  /* botão chama a atenção: respira e balança de leve de tempos em tempos */
+  #new.urge{animation:urge 1.8s ease-in-out infinite}
+  @keyframes urge{
+    0%,100%{transform:scale(1);box-shadow:0 4px 0 var(--ink),0 0 0 0 rgba(91,61,245,.45)}
+    50%{transform:scale(1.07);box-shadow:0 4px 0 var(--ink),0 0 0 12px rgba(91,61,245,0)}
+    62%{transform:scale(1.07) rotate(-2deg)}
+    74%{transform:scale(1.07) rotate(2deg)}
+    86%{transform:scale(1.07) rotate(0)}
+  }
+  
+  /* ==========================================================
+     7. SEQUÊNCIAS: corrente de letras e estrelas de vitórias
+     ========================================================== */
+  .streaks{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:800px;margin:0 auto 14px}
+  @media(max-width:640px){.streaks{grid-template-columns:1fr}}
+  .streak-card{
+    background:var(--card);border:2.5px solid var(--ink);border-radius:16px;box-shadow:var(--solid);
+    padding:9px 12px 10px;transition:background .3s,border-color .3s,box-shadow .3s;
+  }
+  .streak-card.bump{animation:bump .45s var(--pop)}
+  @keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.04)}100%{transform:scale(1)}}
+  .streak-label{font:600 15px/1.3 var(--font);margin-bottom:6px;transition:color .3s}
+  
+  /* --- corrente de letras certas --- */
+  .chain{display:flex;flex-wrap:nowrap;gap:6px;min-height:48px;padding:3px 0 6px;align-items:center}  /* uma linha só: a altura nunca muda */
+  .chain:empty::before{content:"As letras certas aparecem aqui";color:var(--muted);font-size:14px}
+  .bub{
+    position:relative;flex:0 0 auto;width:38px;height:38px;display:grid;place-items:center;border-radius:50%;
+    background:var(--good);color:#fff;border:2.5px solid var(--ink);box-shadow:0 3px 0 var(--ink);
+    font:700 17px/1 var(--font);
+    transition:background .35s,color .35s;
+    animation:bubIn .55s var(--pop) both;
+  }
+  @keyframes bubIn{from{transform:translateY(14px) scale(0) rotate(-35deg)}to{transform:none}}
+  /* anel que se expande ao redor da letra mais nova */
+  .bub.last::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:3px solid var(--good);animation:ring .8s ease-out both}
+  @keyframes ring{from{transform:scale(1);opacity:1}to{transform:scale(1.9);opacity:0}}
+  
+  /* a corrente "esquenta" conforme cresce */
+  #chainBox[data-tier="2"]{border-color:var(--brand);box-shadow:0 4px 0 var(--brand)}
+  #chainBox[data-tier="2"] .bub{background:var(--brand)}
+  #chainBox[data-tier="2"] .bub.last::after{border-color:var(--brand)}
+  #chainBox[data-tier="2"] .streak-label{color:var(--brand)}
+  #chainBox[data-tier="3"]{background:#fff8e1;box-shadow:0 4px 0 var(--ink),0 0 0 5px #ffb70359}
+  #chainBox[data-tier="3"] .bub{background:var(--gold);color:var(--ink)}
+  #chainBox[data-tier="3"] .bub.last::after{border-color:var(--gold)}
+  #chainBox[data-tier="3"] .streak-label{color:#9a6400}
+  
+  /* errou: o cartão fica vermelho e as bolhas se espalham */
+  #chainBox[data-tier="broken"]{border-color:var(--bad);box-shadow:0 4px 0 var(--bad)}
+  #chainBox[data-tier="broken"] .streak-label{color:var(--bad)}
+  .bub.break{background:var(--bad)!important;color:#fff!important;animation:shatter .8s ease-in forwards}
+  @keyframes shatter{
+    0%{transform:none;opacity:1}
+    25%{transform:scale(1.15) rotate(var(--fr))}
+    100%{transform:translate(var(--fx),90px) rotate(var(--fr)) scale(.6);opacity:0}
+  }
+  
+  /* vitória: ola das bolhas */
+  .bub.wave{animation:wave .7s ease both;animation-delay:calc(var(--i) * 70ms)}
+  .bub.wave::after{display:none}
+  @keyframes wave{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px) scale(1.2)}}
+  
+  /* --- estrelas de rodadas ganhas --- */
+  .trophies{display:flex;flex-wrap:wrap;gap:4px;min-height:48px;align-items:center}
+  .star{
+    position:relative;font-size:32px;line-height:1;color:#e3dffa;   /* casa vazia */
+    -webkit-text-stroke:2px var(--line);
+  }
+  .star.on{color:var(--gold);-webkit-text-stroke:2px var(--ink);filter:drop-shadow(0 3px 0 var(--ink))}
+  /* a estrela nova é "carimbada" com um anel de impacto */
+  .star.stamp{animation:stamp .8s var(--pop) both}
+  @keyframes stamp{0%{transform:scale(3.2) rotate(-50deg);opacity:0}55%{opacity:1}100%{transform:none}}
+  .star.stamp::after{
+    content:"";position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;
+    border-radius:50%;border:3px solid var(--gold);animation:burst .8s .25s ease-out both;
+  }
+  @keyframes burst{from{transform:scale(1);opacity:1}to{transform:scale(5);opacity:0}}
+  /* derrota: as estrelas caem, uma depois da outra */
+  .star.crumble{animation:crumble .8s ease-in forwards;animation-delay:calc(var(--i) * 70ms)}
+  @keyframes crumble{to{transform:translateY(70px) rotate(70deg);opacity:0;filter:grayscale(1)}}
+  
+  /* ==========================================================
+     8. TECLADO VIRTUAL (teclas que afundam ao clicar)
+     ========================================================== */
+  #kb{display:flex;flex-wrap:wrap;justify-content:center;gap:7px 6px;max-width:600px;margin:0 auto}
+  #kb button{
+    width:44px;height:48px;border-radius:10px;
+    background:var(--card);color:var(--ink);
+    border:2.5px solid var(--ink);box-shadow:var(--solid);
+    font:700 18px var(--font);cursor:pointer;
+    transition:transform .08s,box-shadow .08s,background .15s,color .15s;
+  }
+  #kb button:not(.hit):not(.miss):hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--ink);background:#efecff}
+  #kb button:not(.hit):not(.miss):active{transform:translateY(4px);box-shadow:0 0 0 var(--ink)}   /* afunda até o "chão" */
+  #kb button.hit{background:var(--good);color:#fff;cursor:default;animation:keyHit .5s var(--pop)}
+  #kb button.miss{background:#eceaf6;color:#9a96b8;border-color:#b9b5d3;box-shadow:0 4px 0 #b9b5d3;text-decoration:line-through;cursor:default;animation:keyMiss .4s}
+  @keyframes keyHit{0%{transform:translateY(4px) scale(.9)}60%{transform:translateY(-6px) scale(1.12)}100%{transform:none}}
+  @keyframes keyMiss{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+  #kb.locked button{opacity:.4;cursor:default;pointer-events:none}
+  
+  /* ==========================================================
+     9. RODAPÉ E ACESSIBILIDADE
+     ========================================================== */
+  footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px 24px;text-align:center;margin-top:16px}
+  #new{
+    background:var(--brand);color:#fff;border:2.5px solid var(--ink);border-radius:12px;
+    padding:12px 28px;font:700 17px/1 var(--font);cursor:pointer;box-shadow:var(--solid);
+    transition:transform .08s,box-shadow .08s,background .15s;
+  }
+  #new:hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--ink)}
+  #new:active{transform:translateY(4px);box-shadow:0 0 0 var(--ink)}
+  #stats{flex-basis:100%;margin:0;font:500 15px var(--font);color:var(--muted)}
+  button:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
+  
+  /* ==========================================================
+     10. COMEMORAÇÃO: confete, vinheta de erro e aviso de marco
+     ========================================================== */
+  #confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:30}
+  .confetto{position:absolute;top:-20px;width:9px;height:16px;border-radius:2px;animation:fall linear forwards}
+  .confetto.round{width:11px;height:11px;border-radius:50%}
+  @keyframes fall{
+    0%{transform:translate3d(0,0,0) rotate(0);opacity:1}
+    85%{opacity:1}
+    100%{transform:translate3d(var(--dx),105vh,0) rotate(var(--rot));opacity:0}
+  }
+  
+  /* brilho vermelho nas bordas a cada erro */
+  #vignette{position:fixed;inset:0;pointer-events:none;z-index:25;box-shadow:inset 0 0 140px 30px rgba(229,56,79,0);}
+  #vignette.hurt{animation:hurt .6s ease-out}
+  @keyframes hurt{0%{box-shadow:inset 0 0 140px 30px rgba(229,56,79,.55)}100%{box-shadow:inset 0 0 140px 30px rgba(229,56,79,0)}}
+  
+  /* aviso grande de marco (3, 5, 10 vitórias seguidas) */
+  #toast{
+    position:fixed;left:50%;top:96px;z-index:40;pointer-events:none;
+    transform:translateX(-50%) scale(.6);opacity:0;white-space:nowrap;
+    background:var(--ink);color:#fff;border:3px solid var(--gold);border-radius:999px;
+    padding:14px 28px;font:800 clamp(18px,4.5vw,26px)/1 var(--font);box-shadow:0 8px 0 rgba(29,26,59,.25);
+  }
+  #toast.show{animation:toast 2.6s var(--pop) both}
+  @keyframes toast{
+    0%{opacity:0;transform:translateX(-50%) scale(.5) rotate(-6deg)}
+    12%{opacity:1;transform:translateX(-50%) scale(1.12) rotate(2deg)}
+    20%{transform:translateX(-50%) scale(1) rotate(0)}
+    85%{opacity:1;transform:translateX(-50%) scale(1)}
+    100%{opacity:0;transform:translateX(-50%) translateY(-24px) scale(.9)}
+  }
+  
+  /* ==========================================================
+     11. TELA DE CONFIGURAÇÃO
+     ========================================================== */
+  .setup{
+    position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto;
+    background:radial-gradient(circle at 12% 8%,#ffe7a3 0,transparent 34%),radial-gradient(circle at 92% 92%,#cbc0ff 0,transparent 42%),var(--bg);
+  }
+  .setup[hidden]{display:none}
+  .setup-box{
+    width:100%;max-width:540px;background:var(--card);padding:30px 28px 28px;
+    border:2.5px solid var(--ink);border-radius:24px;box-shadow:0 8px 0 var(--ink);
+    animation:boxIn .6s var(--pop) both;
+  }
+  @keyframes boxIn{from{transform:translateY(30px) scale(.94);opacity:0}to{transform:none;opacity:1}}
+  .setup-box h2{font-weight:800;font-size:28px;line-height:1.2;margin:0 0 14px;text-align:center}
+  .setup-box .label{margin:16px 0 8px}
+  #name{
+    width:100%;padding:12px 14px;font:500 20px var(--font);color:var(--ink);
+    background:#faf9ff;border:2.5px solid var(--ink);border-radius:12px;
+    transition:box-shadow .15s,border-color .15s;
+  }
+  #name:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px #5b3df533}
+  #name::placeholder{color:var(--muted)}
+  
+  .choices{display:flex;gap:10px}
+  .choices button{
+    flex:1;padding:12px 8px;background:var(--card);color:var(--ink);
+    border:2.5px solid var(--ink);border-radius:12px;box-shadow:0 3px 0 var(--ink);
+    font:700 17px var(--font);cursor:pointer;
+    display:flex;flex-direction:column;gap:3px;align-items:center;
+    transition:transform .08s,box-shadow .08s,background .15s,color .15s;
+  }
+  .choices button small{font:500 13px var(--font);color:var(--muted)}
+  .choices button:hover{transform:translateY(-2px);box-shadow:0 5px 0 var(--ink)}
+  .choices button:active{transform:translateY(3px);box-shadow:0 0 0 var(--ink)}
+  .choices button[aria-checked="true"]{background:var(--brand);color:#fff}
+  .choices button[aria-checked="true"] small{color:#e3ddff}
+  .note{margin:12px 0 0;color:var(--muted);font-size:15px;min-height:24px}
+  
+  .start{
+    display:block;width:100%;margin-top:26px;padding:16px;
+    background:var(--good);color:#fff;border:2.5px solid var(--ink);border-radius:14px;box-shadow:var(--solid);
+    font:800 19px/1 var(--font);cursor:pointer;
+    transition:transform .08s,box-shadow .08s,opacity .15s;
+  }
+  .start:hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--ink)}
+  .start:active{transform:translateY(4px);box-shadow:0 0 0 var(--ink)}
+  .start:disabled{opacity:.4;cursor:default;transform:none;box-shadow:var(--solid)}
+  input:focus-visible{outline:none}
+  
+  /* ==========================================================
+     12. BARRA DA CATEGORIA, VIDAS E CARROSSEL
+     ========================================================== */
+  .topic{
+    position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;
+    padding:12px 20px;background:var(--ink);color:#fff;
+    border-bottom:3px solid var(--brand);box-shadow:0 4px 18px #1d1a3b40;
+  }
+  .topic .label{color:#c9c4ee;margin:0 0 3px;font-size:13px}
+  .topic strong{font:700 22px/1.1 var(--font)}
+  .t-ico{font-size:34px;line-height:1;display:inline-block}
+  .topic.flash .t-ico{animation:icoBounce .7s var(--pop)}
+  @keyframes icoBounce{0%{transform:scale(.3) rotate(-30deg)}100%{transform:none}}
+  .t-side{margin-left:auto;white-space:nowrap}
+  .topic.flash{animation:flash .7s}
+  @keyframes flash{0%{background:var(--brand)}100%{background:var(--ink)}}
+  
+  #lives i{font-style:normal;font-size:24px;margin-left:3px;display:inline-block;color:#ff6b81;transition:color .3s,transform .3s}
+  #lives i.off{color:#4a466f;transform:scale(.75)}
+  #lives i.break{animation:heartBreak .7s ease-out}
+  @keyframes heartBreak{
+    0%{transform:scale(1.5);color:#ff6b81}
+    30%{transform:scale(1.7) rotate(-18deg)}
+    60%{transform:scale(1.2) rotate(14deg)}
+    100%{transform:scale(.75) rotate(0)}
+  }
+  /* última vida: o coração restante bate */
+  #lives.low i:not(.off){animation:heartbeat .8s ease-in-out infinite}
+  @keyframes heartbeat{0%,100%{transform:scale(1)}30%{transform:scale(1.35)}60%{transform:scale(1.1)}}
+  
+  .scroll-hint{float:right;font-weight:500;font-size:13px;color:var(--muted)}
+  .rail{
+    display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;
+    padding:8px 4px 16px;scrollbar-width:thin;
+    -webkit-mask-image:linear-gradient(90deg,#000 90%,transparent);mask-image:linear-gradient(90deg,#000 90%,transparent);
+  }
+  .rail button{
+    flex:0 0 116px;scroll-snap-align:start;padding:14px 8px;
+    background:var(--card);color:var(--ink);
+    border:2.5px solid var(--ink);border-radius:16px;box-shadow:0 4px 0 var(--ink);
+    font:700 16px var(--font);
+    display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;
+    transition:transform .15s var(--pop),background .15s,box-shadow .15s;
+  }
+  .rail .ci{font-size:36px;line-height:1.1;transition:transform .25s var(--pop)}
+  .rail small{font:500 12px var(--font);color:var(--muted)}
+  .rail button:hover{transform:translateY(-4px);box-shadow:0 8px 0 var(--ink)}
+  .rail button:hover .ci{transform:scale(1.2) rotate(-6deg)}
+  .rail button:active{transform:translateY(3px);box-shadow:0 0 0 var(--ink)}
+  .rail button[aria-checked="true"]{background:var(--brand);color:#fff;transform:translateY(-4px) scale(1.04);box-shadow:0 8px 0 var(--ink)}
+  .rail button[aria-checked="true"] small{color:#e3ddff}
+  
+  /* ==========================================================
+     13. FEEDBACK DE JOGADA E RESPONSIVO
+     ========================================================== */
+  .stage.shake{animation:shake .45s}
+  @keyframes shake{20%,60%{transform:translateX(-9px) rotate(-2deg)}40%,80%{transform:translateX(9px) rotate(2deg)}}
+  
+  @media(max-width:640px){
+    body{font-size:17px}
+    .stage{zoom:.62}
+    .bub{width:32px;height:32px;font-size:15px}
+    .chain{gap:4px}
+    #kb{gap:7px 5px}
+    #kb button{width:38px;height:48px;font-size:16px}
+    .cell{min-width:36px;height:52px;font-size:27px}
+    .topic strong{font-size:18px}
+    .topic{padding:10px 14px}
+  }
+  
+  /* ==========================================================
+     13b. CADASTRO: perfil, avatares e contador de dicas
+     ========================================================== */
+  .welcome{margin:0 0 4px;padding:10px 14px;background:#efecff;border:2px solid var(--line);border-radius:12px;font-size:15px;text-align:center}
+  .welcome[hidden]{display:none}
+  .welcome .link{margin-left:6px;font-size:14px}
+  .avatars{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  .avatars button{
+    width:48px;height:48px;font-size:26px;line-height:1;padding:0;cursor:pointer;
+    background:var(--card);border:2.5px solid var(--ink);border-radius:50%;box-shadow:0 3px 0 var(--ink);
+    transition:transform .18s var(--pop),background .15s,box-shadow .15s;
+  }
+  .avatars button:hover{transform:translateY(-3px) scale(1.08)}
+  .avatars button:active{transform:translateY(3px);box-shadow:0 0 0 var(--ink)}
+  .avatars button[aria-checked="true"]{background:var(--brand);transform:translateY(-3px) scale(1.14);box-shadow:0 6px 0 var(--ink)}
+  .stepper{display:flex;align-items:center;justify-content:center;gap:18px}
+  .stepper button{
+    width:52px;height:52px;padding:0;border-radius:14px;cursor:pointer;
+    font:800 28px/1 var(--font);background:var(--card);color:var(--ink);
+    border:2.5px solid var(--ink);box-shadow:0 4px 0 var(--ink);
+    transition:transform .08s,box-shadow .08s,opacity .15s;
+  }
+  .stepper button:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 0 var(--ink)}
+  .stepper button:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 var(--ink)}
+  .stepper button:disabled{opacity:.3;cursor:default}
+  .stepper output{min-width:64px;text-align:center;font:800 40px/1 var(--font)}
+  .stepper output.bump{animation:bump .35s var(--pop)}
+  #hintNote{text-align:center}
+  
+  /* ==========================================================
+     14. QUEM PEDIU MENOS MOVIMENTO NO SISTEMA
+     ========================================================== */
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+    #confetti,#vignette{display:none}
+  }

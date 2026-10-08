@@ -53,11 +53,17 @@
         <h2 id="setupTitle">Antes de começar</h2>
         <!-- Título da janela de configuração. -->
 
+        <p id="welcome" class="welcome" hidden><span id="welcomeText"></span> <button id="forget" type="button" class="link">Não sou eu</button></p>
+        <!-- Aparece só para quem já tem perfil salvo neste aparelho. -->
         <label class="label" for="name">Seu nome</label>
         <!-- <label for="name">: associa o texto ao campo de id="name"; clicar no texto foca o campo. -->
         <input id="name" type="text" maxlength="20" autocomplete="off" placeholder="Como devemos chamar você?">
         <!-- Campo de texto. maxlength=20 limita o tamanho; autocomplete="off" desliga sugestões do navegador;
              placeholder é a dica cinza que some ao digitar. -->
+
+        <div class="label">Seu avatar</div>
+        <div id="avatars" class="avatars" role="radiogroup" aria-label="Avatar"></div>
+        <!-- O JS cria um botão por avatar (emoji). -->
 
         <div class="label">Categoria <span class="scroll-hint">deslize →</span></div>
         <!-- Rótulo da seção + aviso discreto de que dá para rolar para o lado. -->
@@ -77,18 +83,17 @@
           <!-- Opção Difícil. -->
         </div>
 
-        <div class="label">Dicas por partida</div>
-        <!-- Rótulo da seção de dicas. -->
-        <div id="hintChoices" class="choices" role="radiogroup" aria-label="Quantidade de dicas">
-          <!-- Grupo de botões para escolher quantas dicas haverá. -->
-          <button type="button" role="radio" data-n="0">0</button>
-          <!-- data-n guarda o número de dicas: 0. -->
-          <button type="button" role="radio" data-n="1">1</button>
-          <!-- 1 dica. -->
-          <button type="button" role="radio" data-n="2">2</button>
-          <!-- 2 dicas. -->
-        </div>
         <p class="note" id="setupNote"></p>
+        <!-- Nota explicativa da dificuldade escolhida (ex.: "Palavras de até 7 letras."). O JS preenche. -->
+
+        <div class="label">Dicas por partida</div>
+        <div class="stepper">
+          <button id="hintMinus" type="button" aria-label="Menos dicas">−</button>
+          <output id="hintCount" aria-live="polite">2</output>
+          <button id="hintPlus" type="button" aria-label="Mais dicas">+</button>
+        </div>
+        <!-- Contador de dicas (0 a 5): − e + mudam o número. As 2 primeiras dicas são escritas; as extras revelam uma letra. -->
+        <p class="note" id="hintNote"></p>
         <!-- Nota explicativa da dificuldade escolhida (ex.: "Palavras de até 7 letras."). O JS preenche. -->
 
         <button id="startBtn" type="button" class="start">Começar partida</button>

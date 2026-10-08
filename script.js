@@ -84,7 +84,7 @@
       /* parts = TODAS as partes do boneco (querySelectorAll devolve uma lista); lista e botão de dicas. */
       newBtn: $('new'), changeBtn: $('change'), confetti: $('confetti'), setup: $('setup'),
       /* Botões Nova partida e Trocar categoria, camada de confete e tela de configuração. */
-      name: $('name'), levels: $('levels'), hintChoices: $('hintChoices'), setupNote: $('setupNote'),
+      name: $('name'), levels: $('levels'), setupNote: $('setupNote'),
       /* Campo do nome, grupos de botões de dificuldade e de dicas, e a nota explicativa. */
       startBtn: $('startBtn'), player: $('player'), cats: $('cats'), topic: $('topic'),
       /* Botão Começar, texto do jogador, carrossel de categorias e barra de categoria do topo. */
@@ -94,7 +94,9 @@
       /* Novos elementos: sequência de letras, trilha de rodadas ganhas, aviso de marco e vinheta de erro. */
       chainBox: $('chainBox'), chain: $('chain'), chainLabel: $('chainLabel'),
       trophyBox: $('trophyBox'), trophies: $('trophies'), trophyLabel: $('trophyLabel'),
-      toast: $('toast'), vignette: $('vignette'), hook: $('hook')
+      toast: $('toast'), vignette: $('vignette'), hook: $('hook'),
+      avatars: $('avatars'), welcome: $('welcome'), welcomeText: $('welcomeText'), forget: $('forget'), setupTitle: $('setupTitle'),
+      hintMinus: $('hintMinus'), hintPlus: $('hintPlus'), hintCount: $('hintCount'), hintNote: $('hintNote')
       /* querySelector devolve só o PRIMEIRO elemento com a classe .stage: o palco do desenho. */
     };
   
@@ -107,9 +109,62 @@
       hard:   { label: 'Difícil', max: Infinity, hints: 1, note: 'Palavras de 10 letras ou mais.' }
       /* Difícil: sem limite (Infinity = infinito), só 1 dica. */
     };
-    var settings = { name: '', level: 'medium', hints: 2, cat: 'all' };
+    var settings = { name: '', avatar: '🦊', level: 'medium', hints: 2, cat: 'all' };
     /* Escolhas do jogador. Valores iniciais: sem nome, nível médio, 2 dicas, categoria 'all' (Surpresa). */
     var stats = { wins: 0, losses: 0, streak: 0, best: 0 };
+
+    /* ---------- CADASTRO (perfil salvo no navegador) ---------- */
+    var HINT_MAX = 5;
+    /* Máximo de dicas por partida que o jogador pode escolher. */
+    var AVATARS = ['🦊', '🐼', '🐸', '🦁', '🐙', '🦄', '🐯', '🐵'];
+    /* Opções de avatar do cadastro. */
+    var STORE_KEY = 'forca.perfil.v1';
+    /* Nome da "gaveta" no localStorage (memória do navegador) onde o perfil fica guardado. */
+    function save() {
+      /* Guarda configurações e placar. try/catch: se o navegador bloquear o armazenamento, o jogo segue normalmente. */
+      try { localStorage.setItem(STORE_KEY, JSON.stringify({ settings: settings, stats: stats })); } catch (e) {}
+    }
+    function load() {
+      /* Lê o perfil salvo (se existir) e confere cada valor antes de usar, para dados antigos/estranhos não quebrarem o jogo. */
+      try {
+        var d = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+        if (!d) return;
+        var a = d.settings || {}, b = d.stats || {};
+        if (typeof a.name === 'string') settings.name = a.name.slice(0, 20);
+        if (AVATARS.indexOf(a.avatar) > -1) settings.avatar = a.avatar;
+        if (LEVELS[a.level]) settings.level = a.level;
+        if (typeof a.hints === 'number' && a.hints >= 0 && a.hints <= HINT_MAX) settings.hints = Math.floor(a.hints);
+        if (a.cat === 'all' || CATS.some(function (c) { return c.id === a.cat; })) settings.cat = a.cat;
+        ['wins', 'losses', 'streak', 'best'].forEach(function (k) { if (typeof b[k] === 'number' && b[k] >= 0) stats[k] = Math.floor(b[k]); });
+      } catch (e) {}
+    }
+    function hintNote(n) {
+      /* Explica o que o número de dicas escolhido significa. */
+      if (n === 0) return 'Sem dicas: desafio puro.';
+      if (n <= 2) return n + (n === 1 ? ' dica escrita.' : ' dicas escritas.');
+      return '2 dicas escritas + ' + (n - 2) + (n - 2 === 1 ? ' letra revelada.' : ' letras reveladas.');
+    }
+    function buildHints(entry) {
+      /* Monta as dicas da partida: primeiro as escritas (cada palavra tem 2); as extras (null) revelam uma letra. */
+      var t = Math.min(settings.hints, entry.h.length), a = entry.h.slice(0, t);
+      for (var i = t; i < settings.hints; i++) a.push(null);
+      return a;
+    }
+    function fit() {
+      /* Ajusta o tamanho da partida à altura da janela, para NUNCA aparecer barra de rolagem durante o jogo. */
+      var main = document.querySelector('main'), root = document.documentElement;
+      main.style.zoom = ''; root.classList.remove('scrolls');
+      /* Mede o tamanho natural primeiro. */
+      if (!el.setup.hidden) return;
+      /* Com o menu aberto não reduz nada. */
+      var z = Math.min(1, (window.innerHeight - el.topic.offsetHeight) / main.scrollHeight);
+      if (z < 0.55) { z = 0.55; root.classList.add('scrolls'); }
+      /* Em telas minúsculas, limita a redução (para não ficar ilegível) e libera rolagem invisível como último recurso. */
+      if (z < 1) main.style.zoom = z;
+    }
+    window.addEventListener('resize', fit);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+    /* Reajusta quando a janela muda de tamanho e quando a fonte termina de carregar. */
     /* Placar: vitórias, derrotas, sequência atual de vitórias e melhor sequência (recorde). */
     var state, last = '', confettiTimer;
     /* state = dados da partida atual (criado em newGame); last = última palavra sorteada
@@ -155,7 +210,7 @@
         /* Cria o estado de uma partida nova. */
         word: entry.w, key: norm(entry.w), cat: entry.c,
         /* word = palavra como exibida (com acento); key = versão sem acento, usada para comparar letras; cat = categoria. */
-        hints: entry.h.slice(0, settings.hints), hintsShown: 0,
+        hints: buildHints(entry), hintsShown: 0,
         /* hints = só as primeiras N dicas (N escolhido pelo jogador; slice recorta a lista); hintsShown = quantas já foram reveladas. */
         hits: [], misses: [], over: false, lost: false
         /* hits = letras acertadas; misses = letras erradas; over = partida acabou?; lost = foi derrota? */
@@ -269,12 +324,14 @@
       el.hintBtn.disabled = state.over || left === 0;
       /* Desativa o botão se o jogo acabou ou se não há mais dicas. (=== compara valor e tipo.) */
       el.hintBtn.textContent = state.hints.length === 0 ? 'Sem dicas nesta partida'
-        : left === 0 ? 'Sem mais dicas' : 'Pedir dica (' + left + ')';
+        : left === 0 ? 'Sem mais dicas' : (state.hints[state.hintsShown] === null ? 'Revelar uma letra (' : 'Pedir dica (') + left + ')';
       /* Texto do botão (ternário encadeado): sem dicas na partida; dicas esgotadas; ou "Pedir dica (restantes)". */
   
       el.stats.textContent = 'Vitórias ' + stats.wins + ' · Derrotas ' + stats.losses +
         ' · Sequência ' + stats.streak + ' · Recorde ' + stats.best;
       /* Atualiza o placar no rodapé. */
+      fit();
+      /* Reajusta o tamanho à janela (a lista de dicas, por exemplo, pode ter crescido). */
     }
   
 
@@ -295,6 +352,8 @@
       var b = document.createElement('span');
       b.className = 'bub last'; b.textContent = c;
       el.chain.appendChild(b);
+      while (el.chain.children.length > 8) el.chain.removeChild(el.chain.firstChild);
+      /* Mostra só as 8 últimas bolhas, para a corrente caber numa linha e o layout não pular. */
       var n = state.chain.push(c);
       /* push devolve o novo tamanho da lista: o número de acertos seguidos. */
       el.chainBox.setAttribute('data-tier', n >= 6 ? 3 : n >= 4 ? 2 : 1);
@@ -359,6 +418,8 @@
     /* ---------- INCENTIVO PARA CONTINUAR JOGANDO ---------- */
     function nudge(kind, d) {
       /* Mostra uma frase que dá um bom motivo para jogar "só mais uma" e faz o botão chamar a atenção. */
+      save();
+      /* Fim de rodada: guarda o placar no perfil. */
       var line;
       if (kind === 'win') {
         var n = stats.streak;
@@ -518,7 +579,18 @@
       /* Ao clicar em "Pedir dica": */
       if (state.over || state.hintsShown >= state.hints.length) return;
       /* Se acabou o jogo ou todas as dicas já foram reveladas, não faz nada. */
-      state.hintsShown++; render();
+      if (state.hints[state.hintsShown] === null) {
+        /* Dica extra: revela uma letra que ainda não foi descoberta. */
+        var rest = state.key.split('').filter(function (k, i, a) { return isLetter(k) && state.hits.indexOf(k) < 0 && a.indexOf(k) === i; });
+        if (rest.length < 2) { say('Falta só uma letra: você consegue!', 'warn'); return; }
+        /* Se só resta uma letra, não gasta a dica: revelar tiraria a graça da vitória. */
+        var L = rest[Math.floor(Math.random() * rest.length)];
+        state.hits.push(L); state.fresh = L;
+        el.kb.querySelector('[data-k="' + L + '"]').className = 'hit';
+        state.hints[state.hintsShown] = '🔎 Letra revelada: ' + L;
+        say('Dica: a letra ' + L + ' está na palavra.', '');
+      }
+      state.hintsShown++; render(); state.fresh = null;
       /* Revela mais uma dica (aumenta o contador) e redesenha. */
     });
     el.newBtn.addEventListener('click', newGame);
@@ -583,7 +655,11 @@
       /* Marca a categoria escolhida. */
       mark(el.levels, 'data-level', settings.level);
       /* Marca a dificuldade escolhida. */
-      mark(el.hintChoices, 'data-n', settings.hints);
+      mark(el.avatars, 'data-av', settings.avatar);
+      /* Marca o avatar escolhido. */
+      el.hintCount.textContent = settings.hints; el.hintNote.textContent = hintNote(settings.hints);
+      el.hintMinus.disabled = settings.hints <= 0; el.hintPlus.disabled = settings.hints >= HINT_MAX;
+      /* Mostra o número de dicas e desativa − e + nos limites (0 e 5). */
       /* Marca a quantidade de dicas escolhida. */
       el.setupNote.textContent = LEVELS[settings.level].note;
       /* Mostra a nota da dificuldade (ex.: "Palavras de até 7 letras."). */
@@ -593,6 +669,12 @@
     function openSetup() {
       /* Abre a tela de configuração. */
       el.name.value = settings.name;
+      var back = settings.name !== '';
+      /* back = já existe um perfil cadastrado neste aparelho. */
+      el.setupTitle.textContent = back ? 'Seu perfil' : 'Criar seu perfil';
+      el.welcome.hidden = !back;
+      el.welcomeText.textContent = 'Bem-vindo de volta, ' + settings.name + '! ' + (stats.wins ? stats.wins + (stats.wins === 1 ? ' vitória' : ' vitórias') + ' até agora.' : 'Bora jogar?');
+      el.startBtn.textContent = back ? 'Começar partida' : 'Cadastrar e jogar';
       /* Preenche o campo com o nome já usado (ou vazio na primeira vez). */
       el.setup.hidden = false;
       /* Mostra a tela (tira o atributo hidden). */
@@ -600,6 +682,8 @@
       /* Atualiza as marcações e o botão. */
       el.name.focus();
       /* Coloca o cursor no campo de nome, pronto para digitar. */
+      fit();
+      /* Com o menu aberto, desfaz qualquer redução de tamanho. */
     }
     el.levels.addEventListener('click', function (e) {
       /* Clique em algum botão de dificuldade: */
@@ -607,19 +691,35 @@
       /* Descobre o botão clicado; se não foi botão, sai. */
       settings.level = b.getAttribute('data-level');
       /* Guarda o nível escolhido (easy, medium ou hard). */
-      settings.hints = LEVELS[settings.level].hints;
+      /* (a quantidade de dicas escolhida pelo jogador é mantida ao trocar a dificuldade) */
       /* Ajusta as dicas para o padrão desse nível (o jogador ainda pode mudar depois). */
       refreshSetup();
       /* Atualiza a tela. */
     });
-    el.hintChoices.addEventListener('click', function (e) {
-      /* Clique em algum botão de quantidade de dicas: */
+    AVATARS.forEach(function (av) {
+      /* Cria um botão por avatar no cadastro. */
+      var b = document.createElement('button');
+      b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('data-av', av); b.setAttribute('aria-label', 'Avatar ' + av); b.textContent = av;
+      el.avatars.appendChild(b);
+    });
+    el.avatars.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;
-      /* Descobre o botão clicado. */
-      settings.hints = Number(b.getAttribute('data-n'));
-      /* Lê o número (vem como texto) e converte com Number. */
-      refreshSetup();
-      /* Atualiza a tela. */
+      settings.avatar = b.getAttribute('data-av'); refreshSetup();
+    });
+    function stepHints(d) {
+      /* Soma d (+1 ou -1) às dicas, sem sair do intervalo 0 a HINT_MAX. */
+      settings.hints = Math.max(0, Math.min(HINT_MAX, settings.hints + d));
+      refreshSetup(); replay(el.hintCount, 'bump');
+    }
+    el.hintMinus.addEventListener('click', function () { stepHints(-1); });
+    el.hintPlus.addEventListener('click', function () { stepHints(1); });
+    el.forget.addEventListener('click', function () {
+      /* "Não sou eu": apaga o perfil deste aparelho para um novo jogador se cadastrar. */
+      if (!window.confirm('Apagar o perfil e as estatísticas salvos neste aparelho?')) return;
+      try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+      settings.name = ''; settings.avatar = AVATARS[0]; settings.hints = 2; settings.level = 'medium'; settings.cat = 'all';
+      stats.wins = stats.losses = stats.streak = stats.best = 0;
+      openSetup();
     });
     el.name.addEventListener('input', refreshSetup);
     /* A cada letra digitada no nome ("input"), reavalia se o botão Começar deve ficar ativo. */
@@ -634,7 +734,9 @@
       /* Guarda o nome. */
       el.setup.hidden = true;
       /* Esconde a tela de configuração. */
-      el.player.textContent = n + ' · ' + LEVELS[settings.level].label;
+      el.player.textContent = settings.avatar + ' ' + n + ' · ' + LEVELS[settings.level].label;
+      save();
+      /* Cadastro concluído: guarda o perfil neste aparelho. */
       /* Mostra "Nome · Dificuldade" no cabeçalho. */
       newGame();
       /* Inicia a primeira partida. */
@@ -646,6 +748,8 @@
     el.changeBtn.addEventListener('click', openSetup);
     /* "Trocar categoria" reabre a configuração. */
   
+    load();
+    /* Antes de abrir o menu, recupera o perfil salvo (se houver). */
     openSetup();
     /* Última linha: ao carregar a página, abre a tela de configuração. É o ponto de partida de tudo. */
   })();
