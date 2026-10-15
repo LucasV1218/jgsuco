@@ -1,166 +1,227 @@
-## Jogo da forca com suco
+# Jogo da Forca — Jornada
 
-Jogo da forca com suco é um jogo de forca desenvolvido em HTML, CSS e JavaScript puro, pensado para funcionar diretamente no navegador sem necessidade de instalação de dependências ou build tools.
-
-O projeto tem foco em experiência divertida, interface visual marcante e mecânica simples de jogo: o jogador deve descobrir a palavra secreta antes de completar o boneco da forca.
-
-## Visão geral
-
-Esse repositório contém uma versão completa de um jogo da forca com:
-
-- categorias de palavras;
-- níveis de dificuldade;
-- dicas por partida;
-- teclado virtual e suporte ao teclado físico;
-- sistema de estatísticas e streaks;
-- perfil do jogador salvo no navegador;
-- animações visuais e feedback em tempo real.
+Jogo da Forca desenvolvido em HTML, CSS e JavaScript puro. A evolução mantém a mecânica original e acrescenta uma camada de progressão local: pontuação, combos, sequência de vitórias, níveis, conquistas, recompensas, ranking mockado, Oportuni Clube, espaço de apoio, Conta Plus e tela de resultado.
 
 ## Stack
 
 - HTML5
 - CSS3
-- JavaScript (Vanilla JS)
-- LocalStorage para persistência local
+- JavaScript Vanilla
+- `localStorage`
+- Sem framework e sem backend.
 
-## Funcionalidades principais
-
-- Escolha de categoria entre várias opções;
-- Escolha de dificuldade (fácil, médio, difícil);
-- Sistema de dicas com aumento gradual de ajuda;
-- Letras usadas, acertos e erros em tempo real;
-- Registro de vitórias, derrotas e sequência de vitórias;
-- Tela de configuração com nome, avatar e preferências do jogador;
-- Feedback visual com confetes, vinheta, toasts e animações;
-- Compatibilidade com dispositivos de diferentes tamanhos.
-
-## Estrutura do projeto
+## Estrutura
 
 ```text
 jgsuco/
-├── README.md
-├── index (2).html
-├── script.js
+├── index.html
 ├── style.css
-└── assets/ (se houver em versões futuras)
+├── script.js
+└── README.md
 ```
 
-### Arquivos principais
+## Funcionalidades
 
-- `index (2).html`: estrutura da interface do jogo e layout principal.
-- `style.css`: estilos visuais, temas, animações, layout responsivo e acessibilidade.
-- `script.js`: lógica do jogo, categorias, sorteio de palavras, dicas, regras, persistência e interações.
-- `README.md`: documentação do projeto.
+### Gameplay
+- categorias de palavras;
+- dificuldade Fácil, Médio e Difícil;
+- dicas configuráveis;
+- teclado virtual;
+- teclado físico;
+- validação de letras repetidas;
+- 6 erros máximos;
+- feedback visual e sonoro apenas via animações CSS;
+- tela de resultado antes da próxima partida.
 
-## Como executar
+### Progressão
+- pontuação por letra;
+- bônus de palavra concluída;
+- multiplicador de combo por acertos consecutivos;
+- sequência de vitórias;
+- recorde de sequência;
+- nível calculado pela pontuação;
+- atividade cognitiva lúdica, sem finalidade médica;
+- conquistas;
+- recompensas por vitórias e sequências;
+- persistência local.
 
-Como o projeto é um site estático, o modo mais simples é abrir o arquivo HTML em um navegador.
+### Experiência contínua
+- perfil do jogador;
+- painel principal;
+- progresso;
+- ranking com dados simulados;
+- recompensas;
+- Oportuni Clube como mock;
+- Conta Plus como demonstração;
+- área de apoio com QR Code placeholder;
+- espaço publicitário mockado somente após a partida.
 
-### Opção 1 — abrir diretamente
+## Regra de pontuação
 
-Abra o arquivo abaixo no navegador:
+As regras ficam centralizadas em `PROGRESSION`, no `script.js`.
 
-```text
-index (2).html
-```
+- Fácil: multiplicador base 1x.
+- Médio: multiplicador 1,35x.
+- Difícil: multiplicador 1,8x.
+- Cada acerto concede pontos.
+- O combo aumenta o valor do próximo acerto até um limite de 2x.
+- Vitória concede bônus.
+- Vitória perfeita concede bônus adicional.
+- Sequências de vitórias aumentam o bônus.
 
-### Opção 2 — rodar localmente com servidor simples
+O objetivo é criar sensação de domínio e progressão sem depender de moedas, energia ou sistemas paralelos.
 
-No terminal, na pasta do projeto:
+## Dados simulados
 
-```bash
-cd jgsuco
-python -m http.server 8000
-```
+Ranking e números de jogadores online são explicitamente mockados. Eles não representam usuários reais.
 
-Depois acesse:
+A camada `mockData` foi separada para facilitar futura substituição por API, Supabase, Firebase ou outro serviço.
 
-```text
-http://localhost:8000/
-```
+## Persistência
 
-## Como jogar
-
-1. Digite seu nome no cadastro inicial.
-2. Escolha seu avatar.
-3. Selecione a categoria desejada.
-4. Escolha a dificuldade.
-5. Defina a quantidade de dicas por partida.
-6. Clique em "Começar partida".
-7. Tente adivinhar a palavra antes de cometer 6 erros.
-
-A cada acerto, a letra aparece na palavra. A cada erro, o boneco avança e a sequência de letras certas pode ser quebrada.
-
-## Regras do jogo
-
-- Cada partida sorteia uma palavra da categoria selecionada.
-- O jogador pode usar letras do teclado físico ou o teclado virtual na tela.
-- O máximo de erros é 6.
-- Se acertar a palavra, a partida é vencida.
-- Se atingir 6 erros, a palavra é revelada e o jogo termina.
-
-## Sistema de categorias e dificuldade
-
-As categorias incluem temas como:
-
-- Animais
-- Comidas
-- Lugares
-- Objetos
-- Tecnologia
-- Natureza
-- Música
-- Profissões
-
-A dificuldade afeta a extensão das palavras e as dicas disponíveis:
-
-- Fácil: palavras curtas
-- Médio: palavras de tamanho intermediário
-- Difícil: palavras mais longas
-
-## Persistência local
-
-O jogo salva o perfil do jogador no navegador usando `localStorage`, incluindo:
+O navegador salva:
 
 - nome;
 - avatar;
-- categoria favorita;
-- quantidade de dicas;
-- vitórias;
-- derrotas;
-- sequência atual;
-- melhor sequência.
+- categoria;
+- dificuldade;
+- dicas;
+- pontuação;
+- nível;
+- vitórias e derrotas;
+- sequência e recorde;
+- letras descobertas;
+- melhor combo;
+- atividade cognitiva;
+- conquistas;
+- recompensas;
+- preferência Plus.
 
-Isso permite que o jogador retorne e continue com as mesmas configurações.
+## Como executar
 
-## Design e UX
+Abra `index.html` diretamente ou use:
 
-O projeto usa CSS avançado para oferecer:
+```bash
+python -m http.server 8000
+```
 
-- layout responsivo;
-- animações de acertos e erros;
-- destaque visual para sequência de letras certas;
-- feedback de marcos e conquistas;
-- alterações visuais para estados de vitória e derrota;
-- acessibilidade com `aria-live`, foco visível e uso semântico de elementos.
+Depois acesse `http://localhost:8000`.
 
-## Personalização
+## Testes mínimos realizados
 
-O projeto é simples de customizar. Algumas alterações comuns:
+- validação de sintaxe JavaScript com `node --check`;
+- conferência estrutural dos IDs HTML usados pelo JavaScript;
+- conferência de persistência e migração de campos novos com defaults;
+- conferência da regra de progressão e recompensas.
 
-- trocar palavras e dicas em `script.js`;
-- alterar cores, bordas, espaçamento e fontes em `style.css`;
-- ajustar textos da interface em `index (2).html`;
-- adicionar novas categorias sem grande esforço.
+## Design / UX
 
-## Observações
+O projeto preserva o design system atual baseado em:
 
-Este é um projeto de frontend lúdico, simples e educativo, ideal para aprender lógica de programação, manipulação do DOM, eventos do navegador e design de interfaces em JavaScript puro.
+- fundo lavanda;
+- índigo escuro;
+- roxo como marca;
+- verde para acerto;
+- vermelho para erro;
+- dourado para marcos;
+- Lexend;
+- cartões arredondados;
+- sombras sólidas;
+- feedback visual curto.
+
+A evolução adiciona hierarquia de produto e mantém o gameplay visualmente limpo.
+
+## Arquitetura
+
+O JavaScript está organizado conceitualmente em:
+
+```text
+CONFIGURAÇÃO
+↓
+ESTADO DO JOGADOR
+↓
+ESTADO DA PARTIDA
+↓
+DADOS / MOCKS
+↓
+FUNÇÕES DO JOGO
+↓
+FUNÇÕES DE PROGRESSÃO
+↓
+FUNÇÕES DE RECOMPENSA
+↓
+FUNÇÕES DE INTERFACE
+↓
+EVENTOS
+```
+
+Não foram introduzidos frameworks, backend, autenticação real, pagamentos, publicidade real ou integrações reais com parceiros.
 
 ## Autor
 
-Projeto desenvolvido por LucasV1218.
+LucasV1218
 
-## Licença
 
-Este repositório não informa uma licença explícita no momento. Caso queira usar ou adaptar o projeto, recomenda-se consultar diretamente o autor antes de distribuir ou reutilizar o código.
+## Atualização de interface — barra de perigo e personagens por categoria
+
+- O contador textual `Erros 0 / 6` foi removido.
+- A partida agora usa uma barra de perigo de 0% a 100%, com estados de segurança, atenção, perigo e última chance.
+- A quantidade de dicas é escolhida antes da partida, de 0 a 5. As pistas escolhidas são liberadas automaticamente conforme os erros aumentam; não existe botão manual de pedir dica.
+- O placar de pontos do rodapé foi removido. A pontuação continua existindo internamente para a Jornada, nível, ranking e recompensas.
+- O personagem é construído progressivamente em seis erros: cabeça, cabelo, corpo, mãos, pés e elemento visual da categoria.
+- Cada categoria possui identidade visual própria: Animais, Comidas, Lugares, Objetos, Tecnologia, Natureza, Música e Profissões.
+- A mensagem da barra usa o contexto da categoria para orientar o raciocínio sem revelar a resposta.
+
+
+## Atualização V4 — personagens e dicas
+
+- Cada categoria possui um personagem/objeto vetorial próprio dentro da moldura da forca.
+- O personagem é construído em 6 etapas visuais conforme os erros.
+- Dicas configuráveis de 0 a 5 antes da partida.
+- Menu `Como jogar` com instruções rápidas.
+- Fonte geral ampliada sem barras de rolagem visíveis.
+- Mais palavras foram adicionadas em todas as categorias, cobrindo melhor Fácil, Médio e Difícil pelo tamanho da resposta.
+
+
+## Atualização V5 — Jornada, XP e enquadramento da forca
+
+- A Jornada do jogador foi reorganizada para mostrar todos os tópicos sem rolagem no painel principal; o layout se ajusta ao tamanho da janela.
+- Ao selecionar um tópico, seu conteúdo abre imediatamente em um painel sobreposto; o botão Fechar retorna aos tópicos.
+- A barra de progresso agora usa a mesma fórmula que calcula o nível e exibe o XP conquistado e o necessário para o próximo nível.
+- Subidas de nível durante uma partida exibem uma mensagem de parabéns e incentivo. Se o nível mudar no acerto final ou no bônus da vitória, a mensagem aparece na tela de resultado.
+- O personagem vetorial foi aumentado e alinhado ao ponto de suspensão da corda; a altura da coluna também foi ajustada para conectar com a viga.
+- O personagem foi explicitamente tornado visível no render, evitando o estado invisível causado pela classe de opacidade inicial.
+
+### Verificações da V5
+
+- `node --check script.js`
+- IDs usados por `getElementById` conferidos contra `index.html`.
+- Fórmula da barra verificada nos limites de XP dos níveis.
+- Abertura visual em Chromium headless não pôde ser validada neste ambiente: o processo do navegador trava antes de gerar o DOM, por limitações de DBus/zygote do ambiente de execução.
+
+
+## Ajustes V6
+
+- Mascotes vetoriais refeitos em seis camadas coerentes com cada categoria: gato, pizza, castelo, mochila, robô, árvore, guitarra, personagem cartunesco, bombeiro e criatura surpresa.
+- Ao vencer, o render revela explicitamente todas as letras da resposta, sem depender da lista interna de acertos para preencher as células.
+- Tabuleiro ampliado para aproveitar até 1120 px no desktop, teclado virtual com maior área útil e regras responsivas para evitar rolagem de página.
+- Ajuste interno de escala considera altura e largura da janela, sem exigir zoom manual do navegador.
+
+
+## Ajustes V7
+- A palavra agora possui um estado explícito de vitória e uma renderização de segurança que escreve todas as letras da palavra original.
+- Ao concluir uma palavra, o conjunto de acertos é sincronizado com todas as letras únicas da solução antes da exibição do resultado.
+- Personagens humanoides receberam braços retos, mãos alinhadas e pés voltados para fora, em vez de pés virados para dentro.
+- CSS reforça que células reveladas jamais fiquem visualmente vazias.
+
+
+## Atualizações V9
+
+- Jornada do jogador com ação principal mais evidente e cartões de navegação refinados.
+- Como jogar reescrito em instruções rápidas e práticas.
+- Dicas focadas em características reais da palavra secreta; removidas pistas genéricas de quantidade de letras e inicial.
+- A quantidade de dicas exibidas respeita as pistas disponíveis para cada palavra e o limite escolhido pelo jogador (até cinco).
+- Categoria Lugares reformulada para conter apenas países e cidades, incluindo palavras longas para o nível difícil.
+- Banco ampliado com palavras novas e desafiadoras em várias categorias.
+- Barra da rodada chega a 100% ao encerrar por vitória ou derrota, independentemente da dificuldade e da quantidade de dicas.
+- Braços e pernas do personagem de Profissões ajustados para uma postura mais reta.
